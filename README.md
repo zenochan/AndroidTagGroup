@@ -1,5 +1,18 @@
 # `AndroidTagGroup`
 
+
+# Install
+
+```groovy
+repositories{
+  maven {url 'http://maven.mjtown.cn/'}
+}
+
+dependencies{
+  compile 'name.zeno:tag-group:1.0.0'
+}
+```
+
 # Attributes
 
 There are several attributes you can set:

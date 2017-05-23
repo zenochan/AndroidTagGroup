@@ -197,6 +197,10 @@ public class TagGroup extends ViewGroup
         }
       });
     }
+
+    if (isInEditMode()) {
+      setTags("There", "Are", "Some", "Test", "Tags");
+    }
   }
 
   /**
