@@ -1,13 +1,24 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
+apply plugin: 'kotlin-android'
+apply from: 'http://maven.mjtown.cn/maven.gradle'
+mavenConf {
+  groupId "name.zeno"
+  artifactId "tag-group"
+  version "1.0.2"  // released
+//  version "dev-SNAPSHOT"
+
+//  repositoryUrl "file:///Users/zenochan/.m2/repository"
+  repositoryUrl "scp://root@mjtown.cn/root/nginx/maven"
+}
+confMaven()
 
 android {
-  compileSdkVersion 25
-  buildToolsVersion '25.0.3'
+  compileSdkVersion 26
+  buildToolsVersion '26.0.2'
   defaultConfig {
-    minSdkVersion 8
-    targetSdkVersion 25
-    versionName "1.0.0"
+    minSdkVersion 15
+    targetSdkVersion 26
+    versionName mavenConf.version
   }
 
   lintOptions {
@@ -18,65 +29,5 @@ android {
 }
 
 dependencies {
-}
-
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      repository(url: "file:///Users/zenochan/.m2/repository")
-
-      pom.groupId = "name.zeno"
-      pom.artifactId = 'tag-group'
-      pom.version = android.defaultConfig.versionName
-
-      pom.project {
-        name 'Zeno Android Kit'
-        packaging 'aar'
-        description 'zeno'
-        url 'https://github.com/zenochan/AndroidTagGroup.git'
-
-        scm {
-          url 'https://github.com/zenochan/AndroidTagGroup.git'
-          connection 'https://github.com/zenochan/AndroidTagGroup.git'
-          developerConnection 'https://github.com/zenochan/AndroidTagGroup.git'
-        }
-
-        licenses {
-          license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'Apache-2.0'
-          }
-        }
-
-        developers {
-          developer {
-            id 'zenochan'
-            name 'Zeno Chan'
-            email 'zenochan@qq.com'
-          }
-        }
-      }
-    }
-  }
-}
-
-task sourcesJar(type: Jar) {
-  from android.sourceSets.main.java.srcDirs
-  classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-  source = android.sourceSets.main.java.srcDirs
-  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-  failOnError false
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
-  from javadoc.destinationDir
-}
-artifacts {
-  archives javadocJar
-  archives sourcesJar
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }

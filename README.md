@@ -21,7 +21,7 @@ There are several attributes you can set:
 
 |           attr        	|     default      |                         mean                          	 |
 |:------------------------- |:---------------- |:------------------------------------------------------- |
-| atg_isAppendMode      	| false            | Determine the TagGroup mode, APPEND or single DISPLAY.  |
+| atg_mode      	        | display, append, singleChoose,multiChoose  | Determine the TagGroup mode, APPEND or single DISPLAY.  |
 | atg_inputHint   	        | Add Tag/添加标签  | The hint of the INPUT tag.                              |
 | atg_borderColor	        | #49C120          | The tag outline border color.                           |
 | atg_textColor          	| #49C120          | The tag text color.                           	         |

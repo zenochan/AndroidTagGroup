@@ -2,18 +2,20 @@ package me.gujun.android.taggroup.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import me.gujun.android.taggroup.TagGroup;
 import me.gujun.android.taggroup.demo.db.TagsManager;
 
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends AppCompatActivity
 {
   private TextView mPromptText;
 
@@ -23,15 +25,17 @@ public class MainActivity extends ActionBarActivity
   private TagGroup mLargeTagGroup;
   private TagGroup mBeautyTagGroup;
   private TagGroup mBeautyInverseTagGroup;
+  private TagGroup tagSingleChoose;
+  private TagGroup tagMultiChoose;
 
   private TagsManager mTagsManager;
 
-  private TagGroup.OnTagClickListener mTagClickListener = new TagGroup.OnTagClickListener()
+  private Function1<String, Unit> mTagClickListener = new Function1<String, Unit>()
   {
-    @Override
-    public void onTagClick(String tag)
+    @Override public Unit invoke(String s)
     {
-      Toast.makeText(MainActivity.this, tag, Toast.LENGTH_SHORT).show();
+      Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+      return Unit.INSTANCE;
     }
   };
 
@@ -41,8 +45,7 @@ public class MainActivity extends ActionBarActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     mTagsManager = TagsManager.getInstance(getApplicationContext());
-    String[] tags = mTagsManager.getTags();
-    tags = new String[]{"test", "tags"};
+    String[] tags = new String[]{"test", "tags"};
 
     mPromptText = (TextView) findViewById(R.id.tv_prompt);
     mPromptText.setVisibility((tags == null || tags.length == 0) ? View.VISIBLE : View.GONE);
@@ -55,12 +58,14 @@ public class MainActivity extends ActionBarActivity
       }
     });
 
-    testTagGroup = (TagGroup) findViewById(R.id.tag_test);
-    mDefaultTagGroup = (TagGroup) findViewById(R.id.tag_group);
-    mSmallTagGroup = (TagGroup) findViewById(R.id.tag_group_small);
-    mLargeTagGroup = (TagGroup) findViewById(R.id.tag_group_large);
-    mBeautyTagGroup = (TagGroup) findViewById(R.id.tag_group_beauty);
-    mBeautyInverseTagGroup = (TagGroup) findViewById(R.id.tag_group_beauty_inverse);
+    testTagGroup = findViewById(R.id.tag_test);
+    mDefaultTagGroup = findViewById(R.id.tag_group);
+    mSmallTagGroup = findViewById(R.id.tag_group_small);
+    mLargeTagGroup = findViewById(R.id.tag_group_large);
+    mBeautyTagGroup = findViewById(R.id.tag_group_beauty);
+    mBeautyInverseTagGroup = findViewById(R.id.tag_group_beauty_inverse);
+    tagSingleChoose = findViewById(R.id.tag_group_single_choose);
+    tagMultiChoose = findViewById(R.id.tag_group_multi_choose);
     if (tags != null && tags.length > 0) {
       mDefaultTagGroup.setTags(tags);
       mSmallTagGroup.setTags(tags);
@@ -68,6 +73,8 @@ public class MainActivity extends ActionBarActivity
       mBeautyTagGroup.setTags(tags);
       mBeautyInverseTagGroup.setTags(tags);
       testTagGroup.setTags(tags);
+      tagSingleChoose.setTags(tags);
+      tagMultiChoose.setTags(tags);
     }
 
 
@@ -79,11 +86,12 @@ public class MainActivity extends ActionBarActivity
     mBeautyTagGroup.setOnClickListener(tgClickListener);
     mBeautyInverseTagGroup.setOnClickListener(tgClickListener);
 
-    mDefaultTagGroup.setOnTagClickListener(mTagClickListener);
-    mSmallTagGroup.setOnTagClickListener(mTagClickListener);
-    mLargeTagGroup.setOnTagClickListener(mTagClickListener);
-    mBeautyTagGroup.setOnTagClickListener(mTagClickListener);
-    mBeautyInverseTagGroup.setOnTagClickListener(mTagClickListener);
+    mDefaultTagGroup.setOnTagClick(mTagClickListener);
+    mDefaultTagGroup.setOnTagClick(mTagClickListener);
+    mSmallTagGroup.setOnTagClick(mTagClickListener);
+    mLargeTagGroup.setOnTagClick(mTagClickListener);
+    mBeautyTagGroup.setOnTagClick(mTagClickListener);
+    mBeautyInverseTagGroup.setOnTagClick(mTagClickListener);
   }
 
   @Override
@@ -97,6 +105,8 @@ public class MainActivity extends ActionBarActivity
     mLargeTagGroup.setTags(tags);
     mBeautyTagGroup.setTags(tags);
     mBeautyInverseTagGroup.setTags(tags);
+    tagSingleChoose.setTags(tags);
+    tagMultiChoose.setTags(tags);
   }
 
   @Override
