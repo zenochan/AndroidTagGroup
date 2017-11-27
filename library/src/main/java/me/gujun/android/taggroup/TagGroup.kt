@@ -42,6 +42,7 @@ import java.util.*
  * 1. [setTags] set tags
  * 1. [getCheckedFirst] get first checked tag index, maybe [Unit]
  * 2. [getChecked] get all checked tag indexes
+ * 1. [onCheckChanged] 选中状态改变
  *
  * @author Jun Gu (http://2dxgujun.com), ZenoChan (513500085@qq.com)
  * @version 2.0
@@ -90,6 +91,7 @@ class TagGroup @JvmOverloads constructor(
 
   /** one of [MODE_DISPLAY], [MODE_APPEND], [MODE_SINGLE_CHOOSE], [MODE_MULTI_CHOOSE] */
   var mode: Int = 0
+  var uncheckable = true
 
   /** The text to be displayed when the text of the INPUT tag is empty.  */
   private var inputHint: CharSequence? = null
@@ -237,6 +239,11 @@ class TagGroup @JvmOverloads constructor(
    */
   protected val checkedTagIndex: Int
     get() = (0 until childCount).firstOrNull { getTagAt(it)?.isChecked ?: false } ?: -1
+
+  private var checkChanged: ((TagGroup) -> Unit)? = null
+  fun onCheckChanged(listener: ((TagGroup) -> Unit)?) {
+    this.checkChanged = listener
+  }
 
   init {
     default_border_stroke_width = dp2px(0.5f)
@@ -428,14 +435,21 @@ class TagGroup @JvmOverloads constructor(
   }
 
   fun setChecked(vararg index: Int) {
+    val ls = this.checkChanged
+    this.checkChanged = null
+    // 通过设置的check， 屏蔽 listener
+
     (0 until childCount).forEach {
       val view = getChildAt(it) as TagView
       if (mode == MODE_SINGLE_CHOOSE) {
+        // 单选，只管第一个
         view.isChecked = it == index[0]
       } else if (mode == MODE_MULTI_CHOOSE) {
         view.isChecked = it in index
       }
     }
+
+    this.checkChanged = ls
   }
 
   fun getCheckedFirst(): Int? = (0 until childCount).firstOrNull { (getChildAt(it) as TagView).isChecked }
@@ -561,7 +575,7 @@ class TagGroup @JvmOverloads constructor(
           (0 until this@TagGroup.childCount).forEach {
             val view = this@TagGroup.getChildAt(it) as TagView
             if (tag == view) {
-              view.isChecked = !view.isChecked
+              view.isChecked = !view.isChecked || uncheckable
             } else {
               view.isChecked = false
             }
@@ -596,6 +610,7 @@ class TagGroup @JvmOverloads constructor(
      */
     internal var isChecked = false
       set(value) {
+        if (value == field) return
         field = value
         // Make the checked mark drawing region.
         val paddingR = if (isChecked && mode == MODE_APPEND)
@@ -604,6 +619,8 @@ class TagGroup @JvmOverloads constructor(
           horizontalPadding
         setPadding(horizontalPadding, verticalPadding, paddingR, verticalPadding)
         invalidatePaint()
+
+        checkChanged?.invoke(this@TagGroup)
       }
 
 
@@ -759,32 +776,30 @@ class TagGroup @JvmOverloads constructor(
     }
 
     private fun invalidatePaint() {
-      when (mode) {
-        MODE_DISPLAY -> {
+      when {
+        mode == MODE_DISPLAY -> {
           mBorderPaint.color = borderColor
           mBackgroundPaint.color = mBackgroundColor
           setTextColor(textColor)
         }
+        mState == TAG_VIEW_STATE_INPUT -> {
+          mBorderPaint.color = dashBorderColor
+          mBorderPaint.pathEffect = mPathEffect
+          mBackgroundPaint.color = mBackgroundColor
+          setHintTextColor(inputHintColor)
+          setTextColor(inputTextColor)
+        }
         else -> {
-          if (mState == TAG_VIEW_STATE_INPUT) {
-            mBorderPaint.color = dashBorderColor
-            mBorderPaint.pathEffect = mPathEffect
-            mBackgroundPaint.color = mBackgroundColor
-            setHintTextColor(inputHintColor)
-            setTextColor(inputTextColor)
+          mBorderPaint.pathEffect = null
+          if (isChecked) {
+            mBorderPaint.color = checkedBorderColor
+            mBackgroundPaint.color = checkedBackgroundColor
+            setTextColor(checkedTextColor)
           } else {
-            mBorderPaint.pathEffect = null
-            if (isChecked) {
-              mBorderPaint.color = checkedBorderColor
-              mBackgroundPaint.color = checkedBackgroundColor
-              setTextColor(checkedTextColor)
-            } else {
-              mBorderPaint.color = borderColor
-              mBackgroundPaint.color = mBackgroundColor
-              setTextColor(textColor)
-            }
+            mBorderPaint.color = borderColor
+            mBackgroundPaint.color = mBackgroundColor
+            setTextColor(textColor)
           }
-
         }
       }
 
@@ -822,6 +837,7 @@ class TagGroup @JvmOverloads constructor(
         mBackgroundPaint.style = Paint.Style.FILL
         canvas.drawPath(mBorderPath, mBackgroundPaint)
       }
+
       canvas.drawArc(mLeftCornerRectF, -180f, 90f, true, mBackgroundPaint)
       canvas.drawArc(mLeftCornerRectF, -270f, 90f, true, mBackgroundPaint)
       canvas.drawArc(mRightCornerRectF, -90f, 90f, true, mBackgroundPaint)
@@ -841,6 +857,7 @@ class TagGroup @JvmOverloads constructor(
       }
 
       canvas.drawPath(mBorderPath, mBorderPaint)
+
       super.onDraw(canvas)
     }
 
@@ -891,10 +908,18 @@ class TagGroup @JvmOverloads constructor(
 
       // Ensure the checked mark drawing region is correct across screen orientation changes.
       if (isChecked) {
-        setPadding(horizontalPadding,
-            verticalPadding,
-            (horizontalPadding.toFloat() + h / 2.5f + TAG_VIEW_CHECKED_MARKER_OFFSET.toFloat()).toInt(),
-            verticalPadding)
+        // 叉号宽度
+        val crossW = when (mode) {
+          MODE_APPEND -> h / 2.5f + TAG_VIEW_CHECKED_MARKER_OFFSET
+          else -> 0F
+        }
+
+        setPadding(
+            horizontalPadding,                      //l
+            verticalPadding,                        //t
+            horizontalPadding + crossW.toInt(),     //e
+            verticalPadding                         //b
+        )
       }
     }
 
@@ -929,6 +954,5 @@ class TagGroup @JvmOverloads constructor(
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection =
         ZanyInputConnection(super.onCreateInputConnection(outAttrs), true)
-
   }
 }

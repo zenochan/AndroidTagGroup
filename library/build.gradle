@@ -4,8 +4,8 @@ apply from: 'http://maven.mjtown.cn/maven.gradle'
 mavenConf {
   groupId "name.zeno"
   artifactId "tag-group"
-  version "1.0.2"  // released
-//  version "dev-SNAPSHOT"
+  version "1.0.2.20171127"  // released
+//  version "1.0.3.1124-SNAPSHOT"
 
 //  repositoryUrl "file:///Users/zenochan/.m2/repository"
   repositoryUrl "scp://root@mjtown.cn/root/nginx/maven"
@@ -13,11 +13,11 @@ mavenConf {
 confMaven()
 
 android {
-  compileSdkVersion 26
-  buildToolsVersion '26.0.2'
+  compileSdkVersion 27
+  buildToolsVersion '27.0.1'
   defaultConfig {
     minSdkVersion 15
-    targetSdkVersion 26
+    targetSdkVersion 27
     versionName mavenConf.version
   }
 

@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity
     mBeautyTagGroup.setTags(tags);
     mBeautyInverseTagGroup.setTags(tags);
     tagSingleChoose.setTags(tags);
+    tagSingleChoose.setChecked(0);
     tagMultiChoose.setTags(tags);
   }
 
